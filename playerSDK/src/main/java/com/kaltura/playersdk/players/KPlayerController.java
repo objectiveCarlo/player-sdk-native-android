@@ -118,7 +118,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
         player.setShouldCancelPlay(false);
-        play();
+        forcePlay();
 
     }
 
@@ -307,27 +307,31 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
         mPlayLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Play) {
-            currentState = UIState.Play;
-            if (isBackgrounded && isIMAActive) {
-                imaManager.resume();
-                return;
-            }
-            if (isIMAActive) {
-                return;
-            }
-            if (mCastProvider == null) {
-                if (player != null) {
-                    player.play();
-                    if (isBackgrounded) {
-                        //if go to background on buffering and playback starting need to pause and change to playing
-                        player.pause();
-                        isPlaying = true;
-                    }
+            forcePlay();
+        }
+    }
+
+    private void forcePlay() {
+        currentState = UIState.Play;
+        if (isBackgrounded && isIMAActive) {
+            imaManager.resume();
+            return;
+        }
+        if (isIMAActive) {
+            return;
+        }
+        if (mCastProvider == null) {
+            if (player != null) {
+                player.play();
+                if (isBackgrounded) {
+                    //if go to background on buffering and playback starting need to pause and change to playing
+                    player.pause();
+                    isPlaying = true;
                 }
-            } else {
-                if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    mCastProvider.getCastMediaRemoteControl().play();
-                }
+            }
+        } else {
+            if (mCastProvider.getCastMediaRemoteControl() != null) {
+                mCastProvider.getCastMediaRemoteControl().play();
             }
         }
     }
