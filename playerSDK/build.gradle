@@ -9,7 +9,7 @@ try {
 apply from: "../kalturaCommon.gradle"
 
 android {
-    compileSdkVersion kaltura.compileSdkVersion
+    compileSdkVersion 25
     buildToolsVersion '24.0.3'
 
     defaultConfig {
