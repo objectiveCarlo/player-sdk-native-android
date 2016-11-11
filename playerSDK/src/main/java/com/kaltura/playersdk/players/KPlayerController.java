@@ -13,7 +13,6 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.kaltura.playersdk.PlayerViewController;
 import com.kaltura.playersdk.casting.KCastInternalListener;
 import com.kaltura.playersdk.casting.KCastProviderV3Impl;
 import com.kaltura.playersdk.events.KPlayerState;
@@ -28,9 +27,6 @@ import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.LicenseResource;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -293,54 +289,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         player.pause();
         //player.setCurrentPlaybackTime(0);
         //player.switchTrack(TrackType.TEXT,-1);
-    }
-
-    public void setEntryMetadata() {
-
-        playerListener.asyncEvaluate("{mediaProxy.entry}", "MediaProxy", new PlayerViewController.EvaluateListener() {
-            @Override
-            public void handler(String evaluateResponse) {
-
-                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
-                    mMediaProxy = evaluateResponse;
-                    try {
-                        JSONObject jObject  = new JSONObject(mMediaProxy);
-                        if (jObject.has("partnerData") && JSONObject.NULL.equals(jObject.get("partnerData"))) {
-                            //OVP
-                            mEntryId = jObject.getString("id");
-                        } else {
-                            if (jObject.has("partnerData") && jObject.getJSONObject("partnerData").has("requestData")) {
-                                //OTT
-                                mEntryId = jObject.getJSONObject("partnerData").getJSONObject("requestData").getString("MediaID");
-                            }
-                        }
-
-
-                        mEntryName = jObject.getString("name");
-                        mEntryThumbnailUrl = jObject.getString("thumbnailUrl");
-                        if("".equals(mEntryThumbnailUrl)) {
-                            mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
-                        }
-
-                        mEntryDescription = jObject.getString("description");
-
-
-                        LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
-                        LOGD(TAG, "setEntryMetadata mEntryThumbnailUrl:" + mEntryThumbnailUrl);
-                        LOGD(TAG, "setEntryMetadata mEntryId:" + mEntryId);
-                        LOGD(TAG, "setEntryMetadata mEntryDescription:" + mEntryDescription);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                } else{
-                    mMediaProxy = "";
-                }
-                //LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
-            }
-        });
-
-
-
+        //
     }
 
     private enum UIState {
@@ -405,12 +354,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
             if (mCastProvider == null) {
                 if (player != null) {
-                    player.play();
-                    if (isBackgrounded) {
-                        //if go to background on buffering and playback starting need to pause and change to playing
-                        player.pause();
-                        isPlaying = true;
-                    }
+                    forcePlay();
                 }
             } else {
                 if (mCastProvider.getCastMediaRemoteControl() != null) {
@@ -421,10 +365,19 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     @Override
-    public void start() {
-        if (parentViewController != null) {
-            ((PlayerViewController) parentViewController).sendNotification("doPlay", null);
+    public void forcePlay() {
+        currentState = UIState.Play;
+        player.play();
+        if (isBackgrounded) {
+            //if go to background on buffering and playback starting need to pause and change to playing
+            player.pause();
+            isPlaying = true;
         }
+    }
+
+    @Override
+    public void start() {
+        play();
     }
 
     @Override
@@ -464,9 +417,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void replay() {
-        if (parentViewController != null) {
-            ((PlayerViewController) parentViewController).sendNotification("doReplay", null);
-        }
+        setCurrentPlaybackTime(0.01f);
     }
 
     @Override
@@ -618,10 +569,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setSrc(String newSrc) {
 
-        setEntryMetadata();
-
-
-        Context context = parentViewController.getContext();
         if (isBackgrounded && imaManager != null){
             newSourceDuringBg = newSrc;
             return;
