@@ -21,4 +21,5 @@ public interface KMediaControl {
         void seeked(long milliSeconds);
     }
     KPlayerState state();
+    void forcePlay();
 }
