@@ -15,12 +15,11 @@ import android.view.SurfaceHolder;
 import android.widget.FrameLayout;
 import android.widget.VideoView;
 
+import com.kaltura.playersdk.PlayerViewController;
+import com.kaltura.playersdk.drm.WidevineDrmClient;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.LicenseResource;
-import com.kaltura.playersdk.PlayerViewController;
-import com.kaltura.playersdk.drm.WidevineDrmClient;
-
 
 import java.util.Collections;
 import java.util.Set;
@@ -526,7 +525,8 @@ public class KWVCPlayer
                         if (!mWasDestroyed) {
                             int currPos = mp.getCurrentPosition();
                             LOGD(TAG, "percent = " + percent + " " + currPos + "/" + mp.getDuration());
-                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && currPos < mp.getDuration()) ? "true" : "false");
+                            int currPercent = currPos / mp.getDuration();
+                            mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < currPercent && currPos < mp.getDuration()) ? "true" : "false");
                         }
                     }
                 });
