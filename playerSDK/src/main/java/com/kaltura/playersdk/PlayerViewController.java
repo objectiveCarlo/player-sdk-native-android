@@ -980,7 +980,7 @@ public class PlayerViewController extends RelativeLayout implements KControlsVie
             LOGD(TAG, "setAttribute Attribute: " + attribute + " " + attributeValue);
             switch (attribute) {
                 case src:
-                    playerController.setEntryMetadata();
+//                    playerController.setEntryMetadata();
                     // attributeValue is the selected source -- allow override.
                     attributeValue = getOverrideURL(mConfig.getEntryId(), attributeValue);
                     playerController.setSrc(attributeValue);
