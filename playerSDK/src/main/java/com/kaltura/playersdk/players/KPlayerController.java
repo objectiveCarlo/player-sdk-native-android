@@ -353,24 +353,28 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
         mPauseLastClickTime = SystemClock.elapsedRealtime();
         if (currentState != UIState.Pause) {
-            currentState = UIState.Pause;
-            if (mCastProvider == null) {
-                if (isBackgrounded && isIMAActive) {
-                    if (imaManager != null) {
-                        imaManager.pause();
-                    }
-                } else {
-                    if (player != null) {
-                        player.pause();
-                    }
+           forcePause();
+        }
+    }
+
+    private void forcePause() {
+        currentState = UIState.Pause;
+        if (mCastProvider == null) {
+            if (isBackgrounded && isIMAActive) {
+                if (imaManager != null) {
+                    imaManager.pause();
                 }
             } else {
-                if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    if (isBackgrounded && !mShouldPauseChromecastInBg ) {
-                        return;
-                    }
-                    mCastProvider.getCastMediaRemoteControl().pause();
+                if (player != null) {
+                    player.pause();
                 }
+            }
+        } else {
+            if (mCastProvider.getCastMediaRemoteControl() != null) {
+                if (isBackgrounded && !mShouldPauseChromecastInBg ) {
+                    return;
+                }
+                mCastProvider.getCastMediaRemoteControl().pause();
             }
         }
     }
@@ -437,10 +441,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void savePlayerState() {
-//        isBackgrounded = isOnBackground;
+        isBackgrounded = true;
         if (player != null) {
             isPlaying = player.isPlaying() || isIMAActive;
-            pause();
+            forcePause();
         } else {
             isPlaying = false;
         }
