@@ -28,4 +28,6 @@ public interface KPlayerControl extends KMediaControl {
     void setSrc(String videoLicenseUrl);
 
     void setLicenseUri(String license);
+
+    void recoverPlayer();
 }
