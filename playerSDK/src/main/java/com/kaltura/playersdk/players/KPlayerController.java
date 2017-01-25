@@ -125,7 +125,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         removeAdPlayer();
         ((View)player).setVisibility(View.VISIBLE);
         player.setShouldCancelPlay(false);
-        play();
+        forcePlay();
 
     }
 
@@ -344,22 +344,32 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
 
         if (currentState != UIState.Play) {
-            currentState = UIState.Play;
-            if (isBackgrounded && isIMAActive) {
-                imaManager.resume();
-                return;
-            }
-            if (isIMAActive) {
-                return;
-            }
-            if (mCastProvider == null) {
-                if (player != null) {
-                    forcePlay();
+            forcePlay();
+        }
+    }
+
+    private void forcePlay() {
+        currentState = UIState.Play;
+        if (isBackgrounded && isIMAActive) {
+            imaManager.resume();
+            return;
+        }
+        if (isIMAActive) {
+            return;
+        }
+        if (mCastProvider == null) {
+            if (player != null) {
+                player.play();
+                if (isBackgrounded) {
+                    //if go to background on buffering and playback starting need to pause and change to playing
+                    player.pause();
+                    isPlaying = true;
+
                 }
-            } else {
-                if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    mCastProvider.getCastMediaRemoteControl().play();
-                }
+            }
+        } else {
+            if (mCastProvider.getCastMediaRemoteControl() != null) {
+                mCastProvider.getCastMediaRemoteControl().play();
             }
         }
     }
@@ -387,24 +397,28 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
 
         if (currentState != UIState.Pause) {
-            currentState = UIState.Pause;
-            if (mCastProvider == null) {
-                if (isBackgrounded && isIMAActive) {
-                    if (imaManager != null) {
-                        imaManager.pause();
-                    }
-                } else {
-                    if (player != null) {
-                        player.pause();
-                    }
+           forcePause();
+        }
+    }
+
+    private void forcePause() {
+        currentState = UIState.Pause;
+        if (mCastProvider == null) {
+            if (isBackgrounded && isIMAActive) {
+                if (imaManager != null) {
+                    imaManager.pause();
                 }
             } else {
-                if (mCastProvider.getCastMediaRemoteControl() != null) {
-                    if (isBackgrounded && !mShouldPauseChromecastInBg ) {
-                        return;
-                    }
-                    mCastProvider.getCastMediaRemoteControl().pause();
+                if (player != null) {
+                    player.pause();
                 }
+            }
+        } else {
+            if (mCastProvider.getCastMediaRemoteControl() != null) {
+                if (isBackgrounded && !mShouldPauseChromecastInBg ) {
+                    return;
+                }
+                mCastProvider.getCastMediaRemoteControl().pause();
             }
         }
     }
@@ -471,10 +485,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     }
 
     public void savePlayerState() {
-//        isBackgrounded = isOnBackground;
+        isBackgrounded = true;
         if (player != null) {
             isPlaying = player.isPlaying() || isIMAActive;
-            pause();
+            forcePause();
         } else {
             isPlaying = false;
         }
