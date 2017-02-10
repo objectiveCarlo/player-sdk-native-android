@@ -265,7 +265,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         JSONObject jsonValue = new JSONObject();
         try {
             jsonValue.put(DurationKey, totalTime);
-            mListener.onAdEvent(AdEvent.AdEventType.STARTED, jsonValue.toString());
+            if (mListener != null)
+                mListener.onAdEvent(AdEvent.AdEventType.STARTED, jsonValue.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
