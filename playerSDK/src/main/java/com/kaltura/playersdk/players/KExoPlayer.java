@@ -188,11 +188,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
-                 if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
-                     mExoPlayer.setSurface(holder.getSurface());
-                     mReadiness = KState.READY;
-                     mExoPlayer.addListener(KExoPlayer.this);
-                 }
+                if (mExoPlayer != null && mExoPlayer.getSurface() == null) {
+                    mExoPlayer.setSurface(holder.getSurface());
+                    mReadiness = KState.READY;
+                    mExoPlayer.addListener(KExoPlayer.this);
+                }
             }
 
             @Override
@@ -249,6 +249,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     public void play() {
 
         if (isPlaying() || mReadiness == KState.PLAYING) {
+            mPassedPlay = true;
             return;
         }
         LOGD(TAG, "action: play called");
@@ -392,6 +393,10 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         prepareWithConfigurationMode = true;
     }
 
+    @Override
+    public void setPrepareWithConfigurationModeOff() {
+        prepareWithConfigurationMode = false;
+    }
 
 
 //    private void savePlayerState() {
@@ -469,9 +474,14 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
             case ExoPlayer.STATE_ENDED:
                 LOGD(TAG, "STATE_ENDED mReadiness: " + mReadiness + " playWhenReady: " + playWhenReady + " mBuffering: " + mBuffering);
-                if (mReadiness == KState.IDLE) {
+
+                if (mReadiness == KState.IDLE || mReadiness == KState.PAUSED) {
                     return;
                 }
+                if (mReadiness == KState.SEEKING && playWhenReady) {
+                    mPlayerListener.eventWithValue(this, KPlayerListener.SeekedKey, null);
+                }
+
                 if (playWhenReady) {
                     mPlayerCallback.playerStateChanged(KPlayerCallback.ENDED);
                     mReadiness = KState.IDLE;

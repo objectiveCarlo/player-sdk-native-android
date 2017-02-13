@@ -100,15 +100,15 @@ public class KControlsView extends WebView implements View.OnTouchListener {
                 if (LogUtils.isWebViewDebugModeOn()) {
                     LOGD(TAG, "WebView console " + messageLevel.name() + ": " + message + " at " + sourceId + " : " + lineNumber);
                 }
-                
+
                 // Special case: clear cache if this error is given.
                 if (messageLevel == ConsoleMessage.MessageLevel.ERROR) {
-                    if (message.equals("Uncaught SyntaxError: Unexpected end of input")) {
+                    if (message.contains("Uncaught SyntaxError")) { // for cases like "Uncaught SyntaxError: Unexpected end of input" or "Uncaught SyntaxError: Invalid or unexpected token"
                         LOGW(TAG, "Removing faulty cached resource: " + sourceId);
                         mCacheManager.removeCachedResponse(Uri.parse(sourceId));
                     }
                 }
-                
+
                 return true;
             }
         });
@@ -116,7 +116,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
         this.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         this.setBackgroundColor(0);
     }
-    
+
 
     public void setKControlsViewClient(KControlsViewClient client) {
         this.controlsViewClient = client;
@@ -167,13 +167,18 @@ public class KControlsView extends WebView implements View.OnTouchListener {
     }
 
     public void triggerEvent(final String event, final String value) {
-        loadUrl(KStringUtilities.triggerEvent(event, value));
+        try {
+            loadUrl(KStringUtilities.triggerEvent(event, value));
+        }
+        catch(NullPointerException e) { //for old android there is bug in WebView internal that they through NPE
+            LOGE(TAG, "WebView NullPointerException caught: " + e.getMessage());
+        }
     }
 
     public void triggerEventWithJSON(String event, String jsonString) {
         this.loadUrl(KStringUtilities.triggerEventWithJSON(event, jsonString));
     }
-    
+
     private WebResourceResponse getWhiteFaviconResponse() {
         // 16x16 white favicon
         byte[] data = Base64.decode("AAABAAEAEBAQAAEABAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAD///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", 0);
@@ -191,7 +196,7 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             try {
                 LOGD(TAG, "getResponse: CacheManager - requestUrl=" + requestUrl);
                 response = mCacheManager.getResponse(requestUrl, headers, method);
-                
+
             } catch (IOException e) {
                 if (requestUrl.getPath().endsWith("favicon.ico")) {
                     response = getWhiteFaviconResponse();
@@ -258,32 +263,44 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             return false;
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError webResourceError) {
             String errMsg = "WebViewError:";
-            if (request != null && request.getUrl() != null) {
-                errMsg += request.getUrl().toString();
-            }
+
+
             if (webResourceError != null) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    if (!errMsg.isEmpty()) {
-                        errMsg += "-";
-                    }
-                    errMsg += webResourceError.getDescription();
+                if (webResourceError.getErrorCode() == -2) {
+                    //view.loadData("<div></div>", "text/html", "UTF-8");
                 }
+                errMsg += webResourceError.getErrorCode() + "-" ;
+                errMsg += webResourceError.getDescription() + "-";
+                if (request != null && request.getUrl() != null) {
+                    errMsg += request.getUrl().toString();
+                }
+
+            }
+            if (errMsg.contains("favicon.ico")) {
+                return;
             }
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-            String errMsg = "WebViewError:";
-            if (failingUrl != null) {
-                errMsg += failingUrl + "-";
+            if (errorCode == -2)    {
+                //view.loadData("<div></div>", "text/html", "UTF-8");
             }
+
+            String errMsg = "WebViewError:";
+            errMsg += errorCode + "-" ;
+
             if (description != null) {
-                errMsg += description;
+                errMsg += description + "-";
+            }
+
+            if (failingUrl != null) {
+                errMsg += failingUrl;
             }
 
             if (errMsg.contains("favicon.ico")) {
@@ -293,10 +310,12 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
-        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+
+        @TargetApi(Build.VERSION_CODES.M)
         @Override
         public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse webResourceResponse) {
             String errMsg = "WebViewError:";
+            errMsg += webResourceResponse.getStatusCode() + "-" ;
             if (request != null && request.getUrl() != null) {
                 errMsg += request.getUrl().toString() + "-";
             }
@@ -307,18 +326,18 @@ public class KControlsView extends WebView implements View.OnTouchListener {
             if (errMsg.contains("favicon.ico")) {
                 return;
             }
-           controlsViewClient.handleKControlsError(new KPError(errMsg));
+            controlsViewClient.handleKControlsError(new KPError(errMsg));
         }
 
         @Override
         public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-           controlsViewClient.handleKControlsError(new KPError(error.toString()));
+            controlsViewClient.handleKControlsError(new KPError(error.toString()));
         }
 
         private WebResourceResponse textResponse(String text) {
             return new WebResourceResponse("text/plain", "UTF-8", new ByteArrayInputStream(text.getBytes()));
         }
-        
+
         private WebResourceResponse handleWebRequest(WebView view, String url, Map<String, String> headers, String method) {
             // On some devices, shouldOverrideUrlLoading() misses the js-frame call.
             if (shouldOverrideUrlLoading(view, url)) {

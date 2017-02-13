@@ -23,14 +23,17 @@ android {
     packagingOptions {
         exclude 'jsr305_annotations/Jsr305_annotations.gwt.xml'
     }
-
 }
 
 dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     compile project(":playerSDK")
 
+<<<<<<< HEAD
     compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.rc9'
+=======
+    compile 'com.github.kaltura:playkit-dtg-android:v2.0.0.rc12'
+>>>>>>> f021352f2b22cf230dca6432553787c7b4433e98
     // Uncomment to build dtglib yourself. Also see settings.grade.
     // compile project(":dtglib")
     

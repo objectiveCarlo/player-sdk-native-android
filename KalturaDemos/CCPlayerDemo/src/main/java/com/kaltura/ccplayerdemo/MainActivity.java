@@ -232,6 +232,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         boolean hasSession = mCastProvider.getCastMediaRemoteControl().hasMediaSession(true);
                         LOGD(TAG,"hasMediaSession" + hasSession);
                         if (hasSession) {
+<<<<<<< HEAD
+=======
+                            if (mCastProvider != null && mCastProvider.isCasting()) {
+                                LOGD(TAG, "----- Before Sending new AD Tag to CC --------");
+                                String newAdTag = mPlayer.getConfig().getConfigValueString("doubleClick.adTagUrl");
+                                if (newAdTag != null) {
+                                    LOGD(TAG, "----- Sending new AD Tag to CC --------");
+                                    ((KCastProviderV3Impl)mCastProvider).sendMessage("{\"type\":\"setKDPAttribute\",\"plugin\":\"doubleClick\",\"property\":\"adTagUrl\",\"value\":\"" + newAdTag + "\"}");
+                                }
+                            }
+>>>>>>> f021352f2b22cf230dca6432553787c7b4433e98
                             if (changeMediaIdx % 3 == 0) {
                                 mPlayer.changeMedia("1_8t7qo08r");
                             } else if (changeMediaIdx % 3 == 1) {
@@ -274,7 +285,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (mPlayer != null) {
                 mPlayer.loadPlayerIntoActivity(this);
                 //LOCAL - KPPlayerConfig config = new KPPlayerConfig("http://10.0.0.11/html5.kaltura/mwEmbed/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+<<<<<<< HEAD
                 KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.48.rc3/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+=======
+                KPPlayerConfig config = new KPPlayerConfig("http://kgit.html5video.org/tags/v2.49/mwEmbedFrame.php", "31638861", "1831271").setEntryId("1_ng282arr");
+>>>>>>> f021352f2b22cf230dca6432553787c7b4433e98
                 //KPPlayerConfig config = new KPPlayerConfig("http://192.168.160.149/html5.kaltura/mwEmbed/mwEmbedFrame.php", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2
 
                  //KPPlayerConfig config = new KPPlayerConfig("http://qa-apache-testing-ubu-01.dev.kaltura.com", "15190232", "4171").setEntryId("0_nq4v8mc2");//0_nq4v8mc2

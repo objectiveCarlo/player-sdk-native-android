@@ -1,6 +1,7 @@
 
 package com.kaltura.playersdk.drm;
 
+import android.annotation.TargetApi;
 import android.content.ContentValues;
 import android.content.Context;
 import android.drm.DrmErrorEvent;
@@ -12,7 +13,6 @@ import android.drm.DrmInfoStatus;
 import android.drm.DrmManagerClient;
 import android.drm.DrmStore;
 import android.os.Build;
-
 import com.kaltura.playersdk.widevine.LicenseResource;
 
 import java.io.FileDescriptor;
@@ -110,6 +110,7 @@ public class WidevineDrmClient {
         void onEvent(DrmEvent event);
     }
 
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public static boolean isSupported(Context context) {
         DrmManagerClient drmManagerClient = new DrmManagerClient(context);
         boolean canHandle = false;
@@ -136,19 +137,23 @@ public class WidevineDrmClient {
         init(context);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void init(Context context) {
 
-        mDrmManager = new DrmManagerClient(context) {
-            @Override
-            protected void finalize() throws Throwable {
-                // Release on finalize. Doesn't matter when, just prevent Android's CloseGuard errors.
-                try {
-                    release();
-                } finally {
-                    super.finalize();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            mDrmManager = new DrmManagerClient(context) {
+                @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+                @Override
+                protected void finalize() throws Throwable {
+                    // Release on finalize. Doesn't matter when, just prevent Android's CloseGuard errors.
+                    try {
+                        release();
+                    } finally {
+                        super.finalize();
+                    }
                 }
-            }
-        };
+            };
+        }
 
         // Detect if this device can play widevine classic
         if (! mDrmManager.canHandle("", WIDEVINE_MIME_TYPE)) {
@@ -193,6 +198,7 @@ public class WidevineDrmClient {
     public void setLicenseResource(LicenseResource licenseResource) {
         mLicenseResource = licenseResource;
     }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
     private void logEvent(DrmEvent event) {
 //		if (! BuildConfig.DEBUG) {
 //			// Basic log
@@ -248,6 +254,7 @@ public class WidevineDrmClient {
         LOGD(TAG, logString.toString());
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private String extractDrmInfo(DrmInfo drmInfo) {
         StringBuilder sb = new StringBuilder();
         if (drmInfo != null) {
@@ -265,6 +272,7 @@ public class WidevineDrmClient {
         return sb.toString();
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private DrmInfoRequest createDrmInfoRequest(String assetUri, String licenseServerUri) {
         if (mLicenseResource != null) {
             return mLicenseResource.createDrmInfoRequest(assetUri, licenseServerUri);
@@ -288,6 +296,7 @@ public class WidevineDrmClient {
         return createDrmInfoRequest(assetUri, null);
     }
     
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void registerPortal() {
 
         String portal = getPortalName();
@@ -313,6 +322,7 @@ public class WidevineDrmClient {
      * @param assetUri
      * @return
      */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public boolean needToAcquireRights(String assetUri){
         mDrmManager.acquireDrmInfo(createDrmInfoRequest(assetUri));
         int rightsStatus = mDrmManager.checkRightsStatus(assetUri);
@@ -322,6 +332,7 @@ public class WidevineDrmClient {
         return rightsStatus != DrmStore.RightsStatus.RIGHTS_VALID;
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public int acquireRights(String assetUri, String licenseServerUri) {
 
         if (assetUri.startsWith("/")) {
@@ -341,6 +352,7 @@ public class WidevineDrmClient {
         return rights;
     }
     
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public int acquireLocalAssetRights(String assetPath, String licenseServerUri) {
         DrmInfoRequest drmInfoRequest = createDrmInfoRequest(assetPath, licenseServerUri);
         FileInputStream fis = null;
@@ -381,6 +393,7 @@ public class WidevineDrmClient {
         }
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public RightsInfo getRightsInfo(String assetUri) {
 
         // Need to use acquireDrmInfo prior to calling checkRightsStatus
@@ -393,6 +406,7 @@ public class WidevineDrmClient {
         return new RightsInfo(status, values);
     }
     
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public int removeRights(String assetUri) {
 
         // Need to use acquireDrmInfo prior to calling removeRights
@@ -403,6 +417,7 @@ public class WidevineDrmClient {
         return removeStatus;
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public int removeAllRights() {
         int removeAllStatus = mDrmManager.removeAllRights();
         logMessage("removeAllRights = " + removeAllStatus + "\n");

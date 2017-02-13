@@ -4,7 +4,11 @@
     <string name="audio">Audio</string>
     <string name="text">Text</string>
 
+<<<<<<< HEAD
     <string name="app_id">48A28189</string>
+=======
+    <string name="app_id">2A6E530B</string>
+>>>>>>> f021352f2b22cf230dca6432553787c7b4433e98
     <string name="cast_logo_url">""</string>
     <string name="media_route_menu_title">Play on&#8230;</string>
     <string name="show_queue">Show Queue</string>

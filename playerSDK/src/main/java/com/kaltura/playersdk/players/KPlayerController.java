@@ -13,6 +13,9 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+
+import com.kaltura.playersdk.PlayerViewController;
+
 import com.kaltura.playersdk.casting.KCastInternalListener;
 import com.kaltura.playersdk.casting.KCastProviderV3Impl;
 import com.kaltura.playersdk.events.KPlayerState;
@@ -27,6 +30,9 @@ import com.kaltura.playersdk.tracks.KTracksManager;
 import com.kaltura.playersdk.tracks.TrackFormat;
 import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.LicenseResource;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -78,6 +84,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private String mEntryThumbnailUrl = "";
     private String mMediaProxy = "";
 
+    long positionBeforeChangeMediaForCasting = 0;
 
 
     private KCastProviderV3Impl mCastProvider;
@@ -170,10 +177,14 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     @Override
                     public void run() {
                         if (player != null && mCastPlayer != null) {
-                            mCastPlayer.load(player.getCurrentPlaybackTime(), mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
+                            long fromPosition = positionBeforeChangeMediaForCasting;// != 0 ? positionBeforeChangeMediaForCasting : player.getCurrentPlaybackTime();
+                            player.setCurrentPlaybackTime(fromPosition);
+                            mCastPlayer.load(fromPosition, mEntryName, mEntryDescription, mEntryThumbnailUrl, mEntryId);
+                            positionBeforeChangeMediaForCasting = 0;
+                            currentState = UIState.Play;
                         }
                     }
-                }, 2000);
+                }, 250);
             }
 
             @Override
@@ -185,11 +196,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             }
 
             @Override
-            public void onStopCasting() {
+            public void onStopCasting(boolean appInBg) {
                 if (mCastPlayer != null) {
                     if(player != null) {
-                        if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null)
-                        {
+                        if (mCastProvider != null && mCastProvider.getCastSession() != null && mCastProvider.getCastSession().getRemoteMediaClient() != null) {
                             player.setCurrentPlaybackTime(mCastProvider.getCastSession().getRemoteMediaClient().getApproximateStreamPosition());
                         } else {
                             player.setCurrentPlaybackTime(mCastPlayer.getCurrentPosition());
@@ -199,10 +209,26 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     mCastPlayer = null;
                 }
                 mCastProvider = null;
+                LOGD(TAG,"isBackgrounded = " + isBackgrounded + " appInBg = " + appInBg);
+                if (!isBackgrounded && !appInBg) {
+                    LOGD(TAG,"disconnect and PLAY");
+                    //play();
+                    if (player != null) {
+                        player.play();
+                    }
+                } else {
+                    //some cases doPause does not influance
+                    LOGD(TAG,"disconnect and PAUSE");
+                    if (appInBg) {
+                        pause();
+                    } else if (isBackgrounded) {
+                        if (parentViewController != null) {
+                            ((PlayerViewController) parentViewController).sendNotification("doPause", null);
+                        }
+                    }
+                }
                 currentState = UIState.Pause;
-                play();
             }
-
 
             @Override
             public void onCastMediaStateChanged(KCastMediaRemoteControl.State state) {
@@ -283,13 +309,75 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     //remove caption before changeMedia
     public void changeMedia() {
+        positionBeforeChangeMediaForCasting = 0;
         if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
             mCastPlayer.pause();
         }
-        player.pause();
+        if (player != null) {
+            player.pause();
+        }
         //player.setCurrentPlaybackTime(0);
         //player.switchTrack(TrackType.TEXT,-1);
-        //
+    }
+
+    public void castChangeMedia() {
+        if (player != null) {
+            positionBeforeChangeMediaForCasting = player.getCurrentPlaybackTime();
+        }
+        if(mCastPlayer != null && mCastPlayer.hasMediaSession(true)) {
+            mCastPlayer.pause();
+        }
+        if (player != null) {
+            player.pause();
+        }
+        //player.setCurrentPlaybackTime(0);
+        //player.switchTrack(TrackType.TEXT,-1);
+    }
+
+    public void setEntryMetadata() {
+
+        playerListener.asyncEvaluate("{mediaProxy.entry}", "MediaProxy", new PlayerViewController.EvaluateListener() {
+            @Override
+            public void handler(String evaluateResponse) {
+
+                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
+                    mMediaProxy = evaluateResponse;
+                    try {
+                        JSONObject jObject  = new JSONObject(mMediaProxy);
+                        if (jObject.has("partnerData") && JSONObject.NULL.equals(jObject.get("partnerData"))) {
+                            //OVP
+                            mEntryId = jObject.getString("id");
+                        } else {
+                            if (jObject.has("partnerData") && jObject.getJSONObject("partnerData").has("requestData")) {
+                                //OTT
+                                mEntryId = jObject.getJSONObject("partnerData").getJSONObject("requestData").getString("MediaID");
+                            }
+                        }
+
+
+                        mEntryName = jObject.getString("name");
+                        mEntryThumbnailUrl = jObject.getString("thumbnailUrl");
+                        if("".equals(mEntryThumbnailUrl)) {
+                            mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
+                        }
+
+                        mEntryDescription = jObject.getString("description");
+
+
+                        LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
+                        LOGD(TAG, "setEntryMetadata mEntryThumbnailUrl:" + mEntryThumbnailUrl);
+                        LOGD(TAG, "setEntryMetadata mEntryId:" + mEntryId);
+                        LOGD(TAG, "setEntryMetadata mEntryDescription:" + mEntryDescription);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                } else{
+                    mMediaProxy = "";
+                }
+                //LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
+            }
+        });
+
     }
 
     private enum UIState {
@@ -348,46 +436,41 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
-    private void forcePlay() {
-        currentState = UIState.Play;
-        if (isBackgrounded && isIMAActive) {
-            imaManager.resume();
-            return;
-        }
-        if (isIMAActive) {
-            return;
-        }
-        if (mCastProvider == null) {
-            if (player != null) {
-                player.play();
-                if (isBackgrounded) {
-                    //if go to background on buffering and playback starting need to pause and change to playing
-                    player.pause();
-                    isPlaying = true;
+    @Override
+    public void forcePlay() {
+
+            currentState = UIState.Play;
+            if (isBackgrounded && isIMAActive) {
+                imaManager.resume();
+                return;
+            }
+            if (isIMAActive) {
+                return;
+            }
+            if (mCastProvider == null) {
+                if (player != null) {
+                    player.play();
+                    if (isBackgrounded) {
+                        //if go to background on buffering and playback starting need to pause and change to playing
+                        player.pause();
+                        isPlaying = true;
+                    }
+                }
+            } else {
+                if (mCastProvider.getCastMediaRemoteControl() != null) {
+                    mCastProvider.getCastMediaRemoteControl().play();
+
 
                 }
             }
-        } else {
-            if (mCastProvider.getCastMediaRemoteControl() != null) {
-                mCastProvider.getCastMediaRemoteControl().play();
-            }
-        }
     }
 
-    @Override
-    public void forcePlay() {
-        currentState = UIState.Play;
-        player.play();
-        if (isBackgrounded) {
-            //if go to background on buffering and playback starting need to pause and change to playing
-            player.pause();
-            isPlaying = true;
-        }
-    }
 
     @Override
     public void start() {
-        play();
+        if (parentViewController != null) {
+            ((PlayerViewController) parentViewController).sendNotification("doPlay", null);
+        }
     }
 
     @Override
@@ -583,6 +666,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setSrc(String newSrc) {
 
+        setEntryMetadata();
+
+
+        Context context = parentViewController.getContext();
         if (isBackgrounded && imaManager != null){
             newSourceDuringBg = newSrc;
             return;
@@ -786,7 +873,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     isIMAActive = true;
                     imaManager.contentComplete();
                 } else {
-                    playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
+                    //playerListener.eventWithValue(player, KPlayerListener.SeekedKey, null);
                     playerListener.eventWithValue(player, KPlayerListener.EndedKey, null);
                 }
                 break;
