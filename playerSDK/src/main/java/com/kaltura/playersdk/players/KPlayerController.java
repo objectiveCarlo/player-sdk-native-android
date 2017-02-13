@@ -14,7 +14,6 @@ import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 
-import com.kaltura.playersdk.PlayerViewController;
 
 import com.kaltura.playersdk.casting.KCastInternalListener;
 import com.kaltura.playersdk.casting.KCastProviderV3Impl;
@@ -223,7 +222,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         pause();
                     } else if (isBackgrounded) {
                         if (parentViewController != null) {
-                            ((PlayerViewController) parentViewController).sendNotification("doPause", null);
+                            pause();
+//                            ((PlayerViewController) parentViewController).sendNotification("doPause", null);
                         }
                     }
                 }
@@ -336,47 +336,47 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     public void setEntryMetadata() {
 
-        playerListener.asyncEvaluate("{mediaProxy.entry}", "MediaProxy", new PlayerViewController.EvaluateListener() {
-            @Override
-            public void handler(String evaluateResponse) {
-
-                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
-                    mMediaProxy = evaluateResponse;
-                    try {
-                        JSONObject jObject  = new JSONObject(mMediaProxy);
-                        if (jObject.has("partnerData") && JSONObject.NULL.equals(jObject.get("partnerData"))) {
-                            //OVP
-                            mEntryId = jObject.getString("id");
-                        } else {
-                            if (jObject.has("partnerData") && jObject.getJSONObject("partnerData").has("requestData")) {
-                                //OTT
-                                mEntryId = jObject.getJSONObject("partnerData").getJSONObject("requestData").getString("MediaID");
-                            }
-                        }
-
-
-                        mEntryName = jObject.getString("name");
-                        mEntryThumbnailUrl = jObject.getString("thumbnailUrl");
-                        if("".equals(mEntryThumbnailUrl)) {
-                            mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
-                        }
-
-                        mEntryDescription = jObject.getString("description");
-
-
-                        LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
-                        LOGD(TAG, "setEntryMetadata mEntryThumbnailUrl:" + mEntryThumbnailUrl);
-                        LOGD(TAG, "setEntryMetadata mEntryId:" + mEntryId);
-                        LOGD(TAG, "setEntryMetadata mEntryDescription:" + mEntryDescription);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                } else{
-                    mMediaProxy = "";
-                }
-                //LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
-            }
-        });
+//        playerListener.asyncEvaluate("{mediaProxy.entry}", "MediaProxy", new PlayerViewController.EvaluateListener() {
+//            @Override
+//            public void handler(String evaluateResponse) {
+//
+//                if (evaluateResponse != null && !"null".equals(evaluateResponse)) {
+//                    mMediaProxy = evaluateResponse;
+//                    try {
+//                        JSONObject jObject  = new JSONObject(mMediaProxy);
+//                        if (jObject.has("partnerData") && JSONObject.NULL.equals(jObject.get("partnerData"))) {
+//                            //OVP
+//                            mEntryId = jObject.getString("id");
+//                        } else {
+//                            if (jObject.has("partnerData") && jObject.getJSONObject("partnerData").has("requestData")) {
+//                                //OTT
+//                                mEntryId = jObject.getJSONObject("partnerData").getJSONObject("requestData").getString("MediaID");
+//                            }
+//                        }
+//
+//
+//                        mEntryName = jObject.getString("name");
+//                        mEntryThumbnailUrl = jObject.getString("thumbnailUrl");
+//                        if("".equals(mEntryThumbnailUrl)) {
+//                            mEntryThumbnailUrl = ((PlayerViewController)parentViewController).getConfig().getConfigValueString("chromecast.defaultThumbnail");
+//                        }
+//
+//                        mEntryDescription = jObject.getString("description");
+//
+//
+//                        LOGD(TAG, "setEntryMetadata entryName:" + mEntryName);
+//                        LOGD(TAG, "setEntryMetadata mEntryThumbnailUrl:" + mEntryThumbnailUrl);
+//                        LOGD(TAG, "setEntryMetadata mEntryId:" + mEntryId);
+//                        LOGD(TAG, "setEntryMetadata mEntryDescription:" + mEntryDescription);
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//                } else{
+//                    mMediaProxy = "";
+//                }
+//                //LOGD(TAG, "setEntryMetadata MediaProxy:" + mMediaProxy);
+//            }
+//        });
 
     }
 
@@ -468,9 +468,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
 
     @Override
     public void start() {
-        if (parentViewController != null) {
-            ((PlayerViewController) parentViewController).sendNotification("doPlay", null);
-        }
+//        if (parentViewController != null) {
+//            ((PlayerViewController) parentViewController).sendNotification("doPlay", null);
+//        }
+    play();
     }
 
     @Override
