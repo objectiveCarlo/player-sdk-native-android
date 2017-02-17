@@ -2,6 +2,7 @@ package com.kaltura.playersdk.interfaces;
 
 import android.app.Activity;
 
+import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.widevine.LicenseResource;
 
 /**
@@ -30,4 +31,14 @@ public interface KPlayerControl extends KMediaControl {
     void setLicenseUri(String license);
 
     void recoverPlayer();
+
+    void setTracksEventListener(KTrackActions.EventListener tracksEventListener);
+
+    void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener);
+
+    void setAudioTrackEventListener(KTrackActions.AudioTrackEventListener audioTrackEventListener);
+
+    void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener);
+
+    int getCurrentPossibleBitRate();
 }

@@ -330,6 +330,11 @@ public class KWVCPlayer
 
     }
 
+    @Override
+    public int getObservedBitrate() {
+        return 0;
+    }
+
     public void savePosition() {
         if(mPlayer != null) {
             mSavedState.position = mPlayer.getCurrentPosition();

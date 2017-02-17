@@ -148,6 +148,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    @Override
+    public int getCurrentPossibleBitRate() {
+        if (player != null)
+            return player.getObservedBitrate();
+        return 0;
+    }
+
     public void setCastProvider(final KCastProvider castProvider) {
         pause();
         mCastProvider = (KCastProviderImpl)castProvider;

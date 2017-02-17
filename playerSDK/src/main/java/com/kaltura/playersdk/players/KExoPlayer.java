@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -20,6 +21,8 @@ import com.google.android.exoplayer.ExoPlaybackException;
 import com.google.android.exoplayer.ExoPlayer;
 import com.google.android.exoplayer.MediaCodecTrackRenderer;
 import com.google.android.exoplayer.MediaCodecUtil;
+import com.google.android.exoplayer.TimeRange;
+import com.google.android.exoplayer.chunk.Format;
 import com.google.android.exoplayer.drm.MediaDrmCallback;
 import com.google.android.exoplayer.drm.UnsupportedDrmException;
 import com.google.android.exoplayer.metadata.id3.GeobFrame;
@@ -53,7 +56,7 @@ import static com.kaltura.playersdk.utils.LogUtils.LOGE;
 /**
  * Created by noamt on 18/01/2016.
  */
-public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener ,ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener {
+public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper.PlaybackListener ,ExoplayerWrapper.CaptionListener, ExoplayerWrapper.Id3MetadataListener, ExoplayerWrapper.InfoListener {
 
     private static final String TAG = "KExoPlayer";
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
@@ -77,6 +80,11 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
 
     private SurfaceHolder.Callback mSurfaceCallback;
+    private long mLastBytesLoadedTime;
+    private long mBytesLoaded;
+    private float mBytesLoadedSeconds;
+    private double mIndicatedBitrate;
+    private boolean mBufferWarned;
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
         Set<KMediaFormat> set = new HashSet<>();
@@ -175,6 +183,7 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mSurfaceView = new VideoSurfaceView(getContext());
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
         mExoPlayer = new ExoplayerWrapper(rendererBuilder);
+        mExoPlayer.setInfoListener(this);
         Surface surface = mSurfaceView.getHolder().getSurface();
         if (surface != null) {
             mExoPlayer.setSurface(surface);
@@ -669,6 +678,87 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         CaptioningManager captioningManager =
                 (CaptioningManager) getContext().getSystemService(Context.CAPTIONING_SERVICE);
         return CaptionStyleCompat.createFromCaptionStyle(captioningManager.getUserStyle());
+    }
+
+    @Override
+    public void onVideoFormatEnabled(Format format, int trigger, long mediaTimeMs) {
+
+    }
+
+    @Override
+    public void onAudioFormatEnabled(Format format, int trigger, long mediaTimeMs) {
+
+    }
+
+    @Override
+    public void onDroppedFrames(int count, long elapsed) {
+
+    }
+
+    @Override
+    public void onBandwidthSample(int elapsedMs, long bytes, long bandwidthEstimate) {
+
+    }
+
+    @Override
+    public void onLoadStarted(int sourceId, long length, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs) {
+        Log.d(TAG, "onLoadStarted sourceId " + sourceId + " length " + length + " type " + type + " format " + format + " mediaStartTimeMs " + mediaStartTimeMs + " mediaEndTimeMs " + mediaEndTimeMs);
+        if(mLastBytesLoadedTime == 0) mLastBytesLoadedTime = System.currentTimeMillis();
+
+    }
+
+    @Override
+    public void onLoadCompleted(int sourceId, long bytesLoaded, int type, int trigger, Format format, long mediaStartTimeMs, long mediaEndTimeMs, long elapsedRealtimeMs, long loadDurationMs) {
+        Log.d(TAG, "onLoadCompleted sourceId " + sourceId + " bytesLoaded " + bytesLoaded + " type " + type + " format " + format + " mediaStartTimeMs " + mediaStartTimeMs + " mediaEndTimeMs " + mediaEndTimeMs);
+
+        // log... logBytesLoadedInSeconds
+        long now = System.currentTimeMillis();
+        float diffInSeconds = (now - mLastBytesLoadedTime) / 1000;
+        this.logBytesLoadedInSeconds(bytesLoaded, diffInSeconds); // helper function, explain bellow
+        mLastBytesLoadedTime = now;
+    }
+
+    @Override
+    public int getObservedBitrate(){
+        if(mBytesLoadedSeconds != 0){
+            double bytesPerSecond = mBytesLoaded / mBytesLoadedSeconds;
+            double bitsPerSecond = bytesPerSecond * 8; // (8 bits in a byte)
+            Log.d(TAG," mBytesLoaded " + mBytesLoaded + " in "+mBytesLoadedSeconds+" seconds ("+(int)bitsPerSecond+" b/s indicated "+mIndicatedBitrate+" b/s) ");
+            return (int)bitsPerSecond;
+        }
+        return 0;
+    }
+
+    private void logBytesLoadedInSeconds(long bytes, float seconds){
+        mBytesLoaded += bytes;
+        mBytesLoadedSeconds += seconds;
+        if(mBytesLoadedSeconds > 0){
+            double bytesPerSecond = mBytesLoaded / mBytesLoadedSeconds;
+            double bitsPerSecond = bytesPerSecond * 8; // (8 bits in a byte)
+            if(bitsPerSecond < mIndicatedBitrate){
+                // buffer is falling behind!
+                mBufferWarned = true;
+            }else{
+                if(mBufferWarned){
+                    // buffer caught up
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onDecoderInitialized(String decoderName, long elapsedRealtimeMs, long initializationDurationMs) {
+
+    }
+
+    @Override
+    public void onAvailableRangeChanged(int sourceId, TimeRange availableRange) {
+
+    }
+
+    @Override
+    public void onAvailableRangeChanged(TimeRange availableRange) {
+
     }
 
     private class PlayerState {
