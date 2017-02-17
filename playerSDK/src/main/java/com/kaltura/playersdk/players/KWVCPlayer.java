@@ -481,7 +481,7 @@ public class KWVCPlayer
                     @Override
                     public void onBufferingUpdate(MediaPlayer mp, int percent) {
                         LOGD(TAG, "percent = " + percent + " " + mp.getCurrentPosition() + "/" + mp.getDuration());
-                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
+//                        mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, (percent < 99 && mp.getCurrentPosition() < mp.getDuration()) ? "true" : "false");
 
                     }
                 });
@@ -563,6 +563,9 @@ public class KWVCPlayer
     class PlayheadTracker {
         Handler mHandler;
         float playbackTime;
+        boolean buffering = true;
+        int bufferingCount = 0;
+        int bufferingLimit = 25;
         Runnable mRunnable = new Runnable() {
             @Override
             public void run() {
@@ -575,12 +578,28 @@ public class KWVCPlayer
 
                     if (mPlayer != null && mPlayer.isPlaying()) {
                         LOGE(TAG, mPlayer.getCurrentPosition() + "/" + mPlayer.getDuration());
+                        float oldPlaybackTime = playbackTime;
                         if (mPlayer.getCurrentPosition() > mPlayer.getDuration()) {
                             playbackTime = mPlayer.getDuration() / 1000f;
                         } else {
                             playbackTime = mPlayer.getCurrentPosition() / 1000f;
                         }
-
+                        if (oldPlaybackTime == playbackTime) {
+                            if (!buffering) {
+                                if (bufferingCount >= bufferingLimit) {
+                                    buffering = true;
+                                    mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, "true");
+                                } else {
+                                    bufferingCount++;
+                                }
+                            }
+                        } else {
+                            if (buffering) {
+                                bufferingCount = 0;
+                                buffering = false;
+                                mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.BufferingChangeKey, "false");
+                            }
+                        }
                         mListener.eventWithValue(KWVCPlayer.this, KPlayerListener.TimeUpdateKey, Float.toString(playbackTime));
                     }
 
