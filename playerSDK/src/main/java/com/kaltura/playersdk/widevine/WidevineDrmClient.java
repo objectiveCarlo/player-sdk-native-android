@@ -38,7 +38,7 @@ public class WidevineDrmClient {
     public static final String WV_PORTAL_KEY = "WVPortalKey";
     public static final String WV_DRM_INFO_REQUEST_STATUS_KEY = "WVDrmInfoRequestStatusKey";
     public static final String WV_DRM_INFO_REQUEST_VERSION_KEY = "WVDrmInfoRequestVersionKey";
-    
+
     private long mWVDrmInfoRequestStatusKey = DEVICE_IS_PROVISIONED;
     public static String WIDEVINE_MIME_TYPE = "video/wvm";
     public static String PORTAL_NAME = "kaltura";
@@ -47,6 +47,9 @@ public class WidevineDrmClient {
     private DrmManagerClient mDrmManager;
     private LicenseResource mLicenseResource;
 
+    public void setDeviceId(String deviceId) {
+        mDeviceId = deviceId;
+    }
     public void setEventListener(EventListener eventListener) {
         mEventListener = eventListener;
     }
