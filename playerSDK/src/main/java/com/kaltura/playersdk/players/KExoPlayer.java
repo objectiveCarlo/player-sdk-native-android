@@ -7,12 +7,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.accessibility.CaptioningManager;
 import android.widget.FrameLayout;
 
@@ -225,10 +227,18 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         mSurfaceView.getHolder().addCallback(mSurfaceCallback);
         LOGD(TAG, "KExoPlaer prepareWithConfigurationMode " + prepareWithConfigurationMode);
         if(!prepareWithConfigurationMode) {
+            mSurfaceView.setVisibility(View.INVISIBLE);
             this.addView(mSurfaceView, layoutParams);
             mSubtView = new com.google.android.exoplayer.text.SubtitleLayout(getContext());
             this.addView(mSubtView, layoutParams);
         }
+    }
+
+    @Override
+    public void setVisibility(int visibility) {
+        super.setVisibility(visibility);
+
+        mSurfaceView.setVisibility(visibility);
     }
 
     @Override
@@ -256,6 +266,8 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         }
         return 0;
     }
+
+
 
     @Override
     public void play() {
