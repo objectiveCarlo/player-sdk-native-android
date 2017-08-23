@@ -335,6 +335,11 @@ public class KWVCPlayer
         return 0;
     }
 
+    @Override
+    public void toggleVideoSize() {
+
+    }
+
     public void savePosition() {
         if(mPlayer != null) {
             mSavedState.position = mPlayer.getCurrentPosition();

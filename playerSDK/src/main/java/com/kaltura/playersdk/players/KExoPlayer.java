@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
@@ -87,6 +86,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
     private float mBytesLoadedSeconds;
     private double mIndicatedBitrate;
     private boolean mBufferWarned;
+    private int mCurrentVideoWidth = 0;
+    private int mCurrentVideoHeight = 0;
+    private boolean maximize = false;
 
     public static Set<KMediaFormat> supportedFormats(Context context) {
         Set<KMediaFormat> set = new HashSet<>();
@@ -570,7 +572,22 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-        mSurfaceView.setVideoWidthHeightRatio((float) width / height);
+        mCurrentVideoWidth = width;
+        mCurrentVideoHeight = height;
+        if (!maximize)
+            mSurfaceView.setVideoWidthHeightRatio((float) width / height);
+    }
+
+
+    private void maximizeVideoSize() {
+        maximize = true;
+        mSurfaceView.setVideoWidthHeightRatio(0);
+    }
+
+    private void ratioVideoSize() {
+        maximize = false;
+        if (mCurrentVideoHeight > 0)
+            mSurfaceView.setVideoWidthHeightRatio((float) mCurrentVideoWidth / mCurrentVideoHeight);
     }
 
     @Override
@@ -739,6 +756,15 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
             return (int)bitsPerSecond;
         }
         return 0;
+    }
+
+    @Override
+    public void toggleVideoSize() {
+        if (maximize) {
+            ratioVideoSize();
+        } else {
+            maximizeVideoSize();
+        }
     }
 
     private void logBytesLoadedInSeconds(long bytes, float seconds){
