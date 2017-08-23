@@ -253,11 +253,13 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     private void setAdPlayerSource(String src) {
-        if (mAdPlayer != null)
-            return;
         mSrc = src;
         Video source = new Video(src.toString(), getVideoType());
-        mAdPlayer = new SimpleVideoPlayer(mActivity, mPlayerContainer, source, "", true);
+        if (mAdPlayer == null) {
+            mAdPlayer = new SimpleVideoPlayer(mActivity, mPlayerContainer, source, "", true);
+        } else {
+            mAdPlayer.changedMedia(mPlayerContainer, source, true);
+        }
         mAdPlayer.addPlaybackListener(this);
         mPlayerContainer.setVisibility(View.VISIBLE);
         mAdPlayer.moveSurfaceToForeground();
@@ -270,7 +272,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             mAdPlayer.release();
             mAdPlayer.moveSurfaceToBackground();
             mPlayerContainer.setVisibility(View.INVISIBLE);
-            mAdPlayer = null;
+//            mAdPlayer = null;
         }
     }
 
