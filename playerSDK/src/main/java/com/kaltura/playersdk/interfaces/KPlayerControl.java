@@ -41,4 +41,6 @@ public interface KPlayerControl extends KMediaControl {
     void setTextTrackEventListener(KTrackActions.TextTrackEventListener textTrackEventListener);
 
     int getCurrentPossibleBitRate();
+
+    void toggleMaximizeMode();
 }
