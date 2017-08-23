@@ -155,6 +155,13 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         return 0;
     }
 
+    @Override
+    public void toggleMaximizeMode() {
+        if (player != null) {
+            player.toggleVideoSize();
+        }
+    }
+
     public void setCastProvider(final KCastProvider castProvider) {
         pause();
         mCastProvider = (KCastProviderImpl)castProvider;

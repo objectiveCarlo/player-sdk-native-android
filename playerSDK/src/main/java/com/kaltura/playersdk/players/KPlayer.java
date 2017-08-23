@@ -54,4 +54,5 @@ public interface KPlayer {
 
     int getObservedBitrate();
 
+    void toggleVideoSize();
 }
