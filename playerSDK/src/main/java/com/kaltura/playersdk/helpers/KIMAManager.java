@@ -177,7 +177,8 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     public void onAdEvent(AdEvent adEvent) {
         LOGD(TAG, "Start onAdEvent " + adEvent.getType().name());
 
-        if (adEvent.getType() == AdEvent.AdEventType.SKIPPED) {
+        if (adEvent.getType() == AdEvent.AdEventType.SKIPPED
+                || adEvent.getType() == AdEvent.AdEventType.CONTENT_RESUME_REQUESTED) {
             mIMAPlayer.stopAd();
             mIMAPlayer.removeAd();
         }
