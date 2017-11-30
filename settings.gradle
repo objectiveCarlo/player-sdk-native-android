@@ -1,4 +1,7 @@
 include ':googlemediaframework'
+project(':googlemediaframework').projectDir=new File('./googlemediaframework')
+
 include ':playerSDK'
 include ':kalturaPlay'
 include ':testapp'
+

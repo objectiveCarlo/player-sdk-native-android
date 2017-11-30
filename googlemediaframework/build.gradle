@@ -16,6 +16,10 @@
 
 apply plugin: 'com.android.library'
 
+repositories {
+    google()
+}
+
 android {
     compileSdkVersion 26
     buildToolsVersion "26.0.2"
@@ -24,7 +28,7 @@ android {
         targetSdkVersion 26
         versionCode 1
         versionName '1.0'
-    }
+}
     buildTypes {
         release {
             minifyEnabled false
@@ -36,5 +40,5 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api files('libs/exoplayer.jar')
 }
