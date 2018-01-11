@@ -31,7 +31,7 @@ dependencies {
     api project(path: ':googlemediaframework')
 
     final PLAY_SERVICES_VERSION = '11.8.0'
-    final SUPPORT_LIBRARY_VERSION = '26.1.0'
+    final SUPPORT_LIBRARY_VERSION = '27.0.0'
     api "com.google.android.gms:play-services-cast:$PLAY_SERVICES_VERSION"
     api "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
     api "com.android.support:mediarouter-v7:$SUPPORT_LIBRARY_VERSION"
