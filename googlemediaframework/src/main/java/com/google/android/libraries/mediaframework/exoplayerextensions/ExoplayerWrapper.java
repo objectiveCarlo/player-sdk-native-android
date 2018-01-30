@@ -445,7 +445,11 @@ public class ExoplayerWrapper implements ExoPlayer.Listener, ChunkSampleSource.E
     player.setSelectedTrack(TYPE_TEXT, TRACK_DISABLED);
   }
 
-  /**
+    public ExoPlayer getPlayer() {
+        return player;
+    }
+
+    /**
    * Returns the player control which can be used to play, pause, seek, get elapsed time, and get
    * elapsed duration.
    */

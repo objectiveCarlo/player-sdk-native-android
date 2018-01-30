@@ -269,6 +269,9 @@ public class KExoPlayer extends FrameLayout implements KPlayer, ExoplayerWrapper
         return 0;
     }
 
+    public ExoplayerWrapper getWrapper() {
+        return mExoPlayer;
+    }
 
 
     @Override
