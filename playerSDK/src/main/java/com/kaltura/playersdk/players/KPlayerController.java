@@ -520,6 +520,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         if (player != null) {
             player.removePlayer();
         }
+        isContentCompleted = false;
     }
 
     public void destroy() {
