@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.interfaces;
 
 import android.app.Activity;
+import android.view.View;
 
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.widevine.LicenseResource;
@@ -43,4 +44,6 @@ public interface KPlayerControl extends KMediaControl {
     int getCurrentPossibleBitRate();
 
     void toggleMaximizeMode();
+
+    View createAdditionalPlayerView();
 }
