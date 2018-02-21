@@ -162,6 +162,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    @Override
+    public View createAdditionalPlayerView() {
+        return null;
+    }
+
     public void setCastProvider(final KCastProvider castProvider) {
         pause();
         mCastProvider = (KCastProviderImpl)castProvider;
