@@ -14,6 +14,7 @@ import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRenderingSettings;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
+import com.google.ads.interactivemedia.v3.api.ImaSdkSettings;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.kaltura.playersdk.interfaces.KIMAManagerListener;
 import com.kaltura.playersdk.players.KIMAAdPlayer;
@@ -76,7 +77,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         // Create an AdsLoader.
         mSdkFactory = ImaSdkFactory.getInstance();
-        mAdsLoader = mSdkFactory.createAdsLoader(context);
+
+        ImaSdkSettings sdkSettings = mSdkFactory.createImaSdkSettings();
+        sdkSettings.setEnableOmidExperimentally(true);
+        mAdsLoader = mSdkFactory.createAdsLoader(context, sdkSettings);
         mAdsLoader.addAdErrorListener(this);
         mAdsLoader.addAdsLoadedListener(this);
     }
