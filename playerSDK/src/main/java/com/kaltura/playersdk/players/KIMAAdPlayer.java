@@ -217,6 +217,11 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
 
     }
+
+    @Override
+    public int getVolume() {
+        return 100;
+    }
     // [END ExoplayerWrapper.PlaybackListener region]
 
 
