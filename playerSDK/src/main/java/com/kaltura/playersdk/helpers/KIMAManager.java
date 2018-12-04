@@ -159,7 +159,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
             mimeTypes.add(mAdMimeType);
         }
         //mimeTypes.add("application/x-mpegURL");
-        //mimeTypes.add("video/mp4");
+        mimeTypes.add(KMediaFormat.mp4_clear.mimeType);
         //mimeTypes.add("video/3gpp");
 
         renderingSettings.setMimeTypes(mimeTypes);
