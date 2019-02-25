@@ -43,4 +43,6 @@ public interface KPlayerControl extends KMediaControl {
     int getCurrentPossibleBitRate();
 
     void toggleMaximizeMode();
+
+    void setMaxVideoSize(int width, int height);
 }
