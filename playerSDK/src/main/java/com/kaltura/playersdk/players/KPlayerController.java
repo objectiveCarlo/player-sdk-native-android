@@ -12,6 +12,8 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
+import com.google.android.exoplayer.MediaCodecUtil;
+import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -72,6 +74,9 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private long mPauseLastClickTime = 0;
     private boolean mShouldPauseChromecastInBg = false;
 
+    private int mMaxVideoHeight = Integer.MAX_VALUE;
+    private int mMaxVideoWidth = Integer.MAX_VALUE;
+    private boolean mFilterHdContents = false;
 
     private KCastProviderImpl mCastProvider;
     private KChromeCastPlayer mCastPlayer;
@@ -737,6 +742,18 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     }
                 }
 
+                if(mFilterHdContents){
+                    try {
+                        int[] tracks = VideoFormatSelectorUtil.selectVideoFormats(tracksManager.getVideoTrackList(),
+                                null, mFilterHdContents, false,
+                                mMaxVideoWidth, mMaxVideoHeight);
+                        if(tracks != null && tracks.length > 0){
+                            tracksManager.switchTrack(TrackType.VIDEO, tracks[0]);
+                        }
+                    } catch (MediaCodecUtil.DecoderQueryException ignore) {}
+                }
+
+
                 isPlayerCanPlay = true;
                 if (mActivity != null && !isIMAActive) {
                     addAdPlayer();
@@ -803,4 +820,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         this.prepareWithConfigurationMode = prepareWithConfigurationMode;
     }
 
+    @Override
+    public void setMaxVideoSize(int width, int height) {
+        mFilterHdContents = true;
+        mMaxVideoWidth = width;
+        mMaxVideoHeight = height;
+    }
 }
