@@ -3,6 +3,8 @@ package com.kaltura.playersdk.tracks;
 import android.text.TextUtils;
 
 import com.google.android.exoplayer.MediaFormat;
+import com.google.android.exoplayer.chunk.Format;
+import com.google.android.exoplayer.chunk.FormatWrapper;
 import com.google.android.exoplayer.util.MimeTypes;
 import com.google.android.libraries.mediaframework.exoplayerextensions.ExoplayerWrapper;
 
@@ -14,7 +16,7 @@ import java.util.Locale;
 /**
  * Created by gilad.nadav on 25/05/2016.
  */
-public class TrackFormat {
+public class TrackFormat implements FormatWrapper {
     public static String TAG = "TrackFormat";
 
     public int       index;
@@ -232,6 +234,12 @@ public class TrackFormat {
         result = 31 * result + (language != null ? language.hashCode() : 0);
         result = 31 * result + (adaptive ? 1 : 0);
         return result;
+    }
+
+    @Override
+    public Format getFormat() {
+        //Convert to Format type for the VideoSelector method
+        return new Format(trackId, mimeType, width, height, -1, channelCount, sampleRate, bitrate);
     }
 }
 
