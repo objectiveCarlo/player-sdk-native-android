@@ -716,6 +716,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
             case KPlayerCallback.CAN_PLAY:
                 LOGD(TAG, "playerStateChanged CAN_PLAY");
                 tracksManager = new KTracksManager(player);
+
+                if(mFilterHdContents){
+                    tracksManager.setMaxResolution(mMaxVideoWidth, mMaxVideoHeight);
+                }
+
                 if (videoTrackEventListener != null) {
                     getTracksManager().setVideoTrackEventListener(videoTrackEventListener);
                 }
@@ -741,18 +746,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                         tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
                     }
                 }
-
-                if(mFilterHdContents){
-                    try {
-                        int[] tracks = VideoFormatSelectorUtil.selectVideoFormats(tracksManager.getVideoTrackList(),
-                                null, mFilterHdContents, false,
-                                mMaxVideoWidth, mMaxVideoHeight);
-                        if(tracks != null && tracks.length > 0){
-                            tracksManager.switchTrack(TrackType.VIDEO, tracks[0]);
-                        }
-                    } catch (MediaCodecUtil.DecoderQueryException ignore) {}
-                }
-
 
                 isPlayerCanPlay = true;
                 if (mActivity != null && !isIMAActive) {

@@ -28,10 +28,20 @@ public class KTracksManager implements  KTrackActions {
     private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
     private KTrackActions.TextTrackEventListener  textTrackEventListener = null;
 
+    private boolean filterHDContents = false;
+    private int mMaxWidthFilter = 0;
+    private int mMaxHeightFilter = 0;
+
 
     public KTracksManager(KPlayer player) {
         this.player = player;
         initTrackManagerLists();
+    }
+
+    public void setMaxResolution(int width, int height){
+        filterHDContents = true;
+        mMaxWidthFilter = width;
+        mMaxHeightFilter = height;
     }
 
     public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
@@ -228,6 +238,20 @@ public class KTracksManager implements  KTrackActions {
         return trackList;
     }
 
+    private List<TrackFormat> filterByResolution(List<TrackFormat> tracks) {
+        List<TrackFormat> filteredList = new ArrayList<>();
+        if(tracks != null && !tracks.isEmpty()){
+            for(TrackFormat tf : tracks){
+                if(tf.adaptive){
+                    filteredList.add(tf);
+                } else if(tf.getFormat().width <= mMaxWidthFilter && tf.getFormat().height <= mMaxHeightFilter){
+                    filteredList.add(tf);
+                }
+            }
+        }
+        return filteredList;
+    }
+
 
     private boolean isAvailableTracksRelevant(TrackType trackType) {
         int tracksCount = getTracksCount(trackType);
@@ -261,7 +285,16 @@ public class KTracksManager implements  KTrackActions {
                 tracksList = getTrackFormatsByType(TrackType.TEXT);
                 break;
             case VIDEO:
-                tracksList = getTrackFormatsByType(TrackType.VIDEO);
+                if(filterHDContents){
+                    List <TrackFormat> filteredList = filterByResolution(getTrackFormatsByType(TrackType.VIDEO));
+                    if(filteredList != null && !filteredList.isEmpty()){
+                        tracksList = filteredList;
+                    } else {
+                        tracksList = getTrackFormatsByType(TrackType.VIDEO);
+                    }
+                } else {
+                    tracksList = getTrackFormatsByType(TrackType.VIDEO);
+                }
                 break;
             default:
                 break;
