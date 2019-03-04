@@ -6,6 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.Format;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,20 +29,20 @@ public class KTracksManager implements  KTrackActions {
     private KTrackActions.AudioTrackEventListener audioTrackEventListener = null;
     private KTrackActions.TextTrackEventListener  textTrackEventListener = null;
 
-    private boolean filterHDContents = false;
-    private int mMaxWidthFilter = 0;
-    private int mMaxHeightFilter = 0;
-
-
     public KTracksManager(KPlayer player) {
         this.player = player;
         initTrackManagerLists();
     }
 
-    public void setMaxResolution(int width, int height){
-        filterHDContents = true;
-        mMaxWidthFilter = width;
-        mMaxHeightFilter = height;
+    public void switchTrackByResolution(int width, int height){
+        List<TrackFormat> formats = filterByResolution(getVideoTrackList(), width, height);
+        if(formats != null && formats.size() >= 2){
+            for(int i = 0; i<formats.size(); i++){
+                if(!formats.get(i).adaptive){
+                    switchTrack(TrackType.VIDEO, i);
+                }
+            }
+        }
     }
 
     public void setVideoTrackEventListener(KTrackActions.VideoTrackEventListener videoTrackEventListener) {
@@ -238,13 +239,13 @@ public class KTracksManager implements  KTrackActions {
         return trackList;
     }
 
-    private List<TrackFormat> filterByResolution(List<TrackFormat> tracks) {
+    private List<TrackFormat> filterByResolution(List<TrackFormat> tracks, int width, int height) {
         List<TrackFormat> filteredList = new ArrayList<>();
         if(tracks != null && !tracks.isEmpty()){
             for(TrackFormat tf : tracks){
                 if(tf.adaptive){
                     filteredList.add(tf);
-                } else if(tf.getFormat().width <= mMaxWidthFilter && tf.getFormat().height <= mMaxHeightFilter){
+                } else if(tf.getFormat().width <= width && tf.getFormat().height <= height){
                     filteredList.add(tf);
                 }
             }
@@ -285,16 +286,7 @@ public class KTracksManager implements  KTrackActions {
                 tracksList = getTrackFormatsByType(TrackType.TEXT);
                 break;
             case VIDEO:
-                if(filterHDContents){
-                    List <TrackFormat> filteredList = filterByResolution(getTrackFormatsByType(TrackType.VIDEO));
-                    if(filteredList != null && !filteredList.isEmpty()){
-                        tracksList = filteredList;
-                    } else {
-                        tracksList = getTrackFormatsByType(TrackType.VIDEO);
-                    }
-                } else {
-                    tracksList = getTrackFormatsByType(TrackType.VIDEO);
-                }
+                tracksList = getTrackFormatsByType(TrackType.VIDEO);
                 break;
             default:
                 break;

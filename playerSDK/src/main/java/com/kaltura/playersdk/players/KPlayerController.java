@@ -12,8 +12,6 @@ import android.widget.RelativeLayout;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
-import com.google.android.exoplayer.MediaCodecUtil;
-import com.google.android.exoplayer.chunk.VideoFormatSelectorUtil;
 import com.kaltura.playersdk.casting.KCastProviderImpl;
 import com.kaltura.playersdk.events.KPlayerState;
 import com.kaltura.playersdk.helpers.KIMAManager;
@@ -717,10 +715,6 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                 LOGD(TAG, "playerStateChanged CAN_PLAY");
                 tracksManager = new KTracksManager(player);
 
-                if(mFilterHdContents){
-                    tracksManager.setMaxResolution(mMaxVideoWidth, mMaxVideoHeight);
-                }
-
                 if (videoTrackEventListener != null) {
                     getTracksManager().setVideoTrackEventListener(videoTrackEventListener);
                 }
@@ -745,6 +739,10 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
                     if (tracksManager != null) {
                         tracksManager.switchTrackByBitrate(TrackType.VIDEO, mContentPreferredBitrate);
                     }
+                }
+
+                if(mFilterHdContents){
+                    tracksManager.switchTrackByResolution(mMaxVideoWidth, mMaxVideoHeight);
                 }
 
                 isPlayerCanPlay = true;
