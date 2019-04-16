@@ -77,10 +77,12 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
         // Create an AdsLoader.
         mSdkFactory = ImaSdkFactory.getInstance();
-
         ImaSdkSettings sdkSettings = mSdkFactory.createImaSdkSettings();
-        sdkSettings.setEnableOmidExperimentally(true);
-        mAdsLoader = mSdkFactory.createAdsLoader(context, sdkSettings);
+        mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
+        mAdDisplayContainer.setPlayer(mIMAPlayer);
+        mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
+
+        mAdsLoader = mSdkFactory.createAdsLoader(context, sdkSettings, mAdDisplayContainer);
         mAdsLoader.addAdErrorListener(this);
         mAdsLoader.addAdsLoadedListener(this);
     }
@@ -124,13 +126,9 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
      */
     private void requestAds(String adTagUrl, ContentProgressProvider contentProgressProvider) {
         LOGD(TAG, "Start requestAds adTagUrl = " + adTagUrl);
-        mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
-        mAdDisplayContainer.setPlayer(mIMAPlayer);
-        mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
         // Create the ads request.
         AdsRequest request = mSdkFactory.createAdsRequest();
         request.setAdTagUrl(adTagUrl);
-        request.setAdDisplayContainer(mAdDisplayContainer);
         request.setContentProgressProvider(contentProgressProvider);
 
         // Request the ad. After the ad is loaded, onAdsManagerLoaded() will be called.
