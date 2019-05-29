@@ -5,8 +5,8 @@ import android.drm.DrmErrorEvent;
 import android.drm.DrmEvent;
 import android.drm.DrmInfoEvent;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.kaltura.playersdk.helpers.CacheManager;
 import com.kaltura.playersdk.utils.Utilities;

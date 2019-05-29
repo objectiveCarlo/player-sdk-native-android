@@ -32,10 +32,10 @@ dependencies {
 
 
     final PLAY_SERVICES_VERSION = '16.1.2'
-    final SUPPORT_LIBRARY_VERSION = '28.0.0'
+    final SUPPORT_LIBRARY_VERSION = '1.0.0-beta01'
     api "com.google.android.gms:play-services-cast:$PLAY_SERVICES_VERSION"
-    api "com.android.support:appcompat-v7:$SUPPORT_LIBRARY_VERSION"
-    api "com.android.support:mediarouter-v7:$SUPPORT_LIBRARY_VERSION"
+    api "androidx.appcompat:appcompat:$SUPPORT_LIBRARY_VERSION"
+    api "androidx.mediarouter:mediarouter:$SUPPORT_LIBRARY_VERSION"
     api 'com.google.ads.interactivemedia.v3:interactivemedia:3.10.9'
 }
 
