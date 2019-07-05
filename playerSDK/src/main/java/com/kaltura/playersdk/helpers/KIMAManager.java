@@ -1,6 +1,7 @@
 package com.kaltura.playersdk.helpers;
 
 import android.app.Activity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -67,7 +68,13 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     private String AdPositionKey = "adPosition";
 
 
-    public KIMAManager(Activity context, FrameLayout adPlayerContainer, ViewGroup adUiContainer, String adTagURL, String adMimeType, int adPreferredBitrate) {
+    public KIMAManager(Activity context,
+                       FrameLayout adPlayerContainer,
+                       ViewGroup adUiContainer,
+                       String adTagURL,
+                       String adMimeType,
+                       int adPreferredBitrate,
+                       ArrayList<View> adOverlays) {
         mAdMimeType = adMimeType;
         mAdPreferredBitrate = adPreferredBitrate;
         mIMAPlayer = new KIMAAdPlayer(context, adPlayerContainer, adUiContainer, mAdMimeType, mAdPreferredBitrate);
@@ -78,7 +85,16 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         // Create an AdsLoader.
         mSdkFactory = ImaSdkFactory.getInstance();
         ImaSdkSettings sdkSettings = mSdkFactory.createImaSdkSettings();
+
+        //Register friendly overlays
         mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
+
+        if(adOverlays != null){
+            for(View v : adOverlays){
+                mAdDisplayContainer.registerVideoControlsOverlay(v);
+            }
+        }
+
         mAdDisplayContainer.setPlayer(mIMAPlayer);
         mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
 
@@ -279,6 +295,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     public void destroy() {
         if (mIMAPlayer != null) {
+            mAdDisplayContainer.unregisterAllVideoControlsOverlays();
             mIMAPlayer.release();
             mIMAPlayer = null;
             if (mAdsManager != null) {

@@ -1,9 +1,12 @@
 package com.kaltura.playersdk.interfaces;
 
 import android.app.Activity;
+import android.view.View;
 
 import com.kaltura.playersdk.tracks.KTrackActions;
 import com.kaltura.playersdk.widevine.LicenseResource;
+
+import java.util.ArrayList;
 
 /**
  * Created by carloluismb on 11/10/16.
@@ -45,4 +48,6 @@ public interface KPlayerControl extends KMediaControl {
     void toggleMaximizeMode();
 
     void setMaxVideoSize(int width, int height);
+
+    void setAdOverlays(ArrayList<View> adOverlays);
 }

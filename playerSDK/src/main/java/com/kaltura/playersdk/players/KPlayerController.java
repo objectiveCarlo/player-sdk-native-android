@@ -27,6 +27,7 @@ import com.kaltura.playersdk.tracks.TrackType;
 import com.kaltura.playersdk.widevine.LicenseResource;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -79,6 +80,8 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
     private KCastProviderImpl mCastProvider;
     private KChromeCastPlayer mCastPlayer;
     private LicenseResource mWidevineClassicDataSource;
+
+    private ArrayList<View> adOverlays;
 
     @Override
     public void onAdEvent(AdEvent.AdEventType eventType, String jsonValue) {
@@ -613,6 +616,11 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         }
     }
 
+    @Override
+    public void setAdOverlays(ArrayList<View> adOverlays) {
+        this.adOverlays = adOverlays;
+    }
+
     private void addAdPlayer() {
         isIMAActive = true;
         LOGD(TAG, "Start addAdPlayer");
@@ -630,7 +638,7 @@ public class KPlayerController implements KPlayerCallback, ContentProgressProvid
         parentViewController.addView(mAdControls, controlsLP);
 
         // Initialize IMA manager
-        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate);
+        imaManager = new KIMAManager(mActivity.get(), adPlayerContainer, mAdControls, adTagURL, mAdMimeType, mAdPreferredBitrate, adOverlays);
         imaManager.setListener(this);
         imaManager.requestAds(this);
     }
