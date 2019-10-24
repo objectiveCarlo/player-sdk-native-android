@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import androidx.annotation.NonNull;
+
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -292,27 +294,31 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     }
 
     private Video.VideoType getVideoType() {
-        String videoFileName = Uri.parse(mSrc).getLastPathSegment();
-        int index = videoFileName.lastIndexOf('.');
-        if (index > -1) {
-            switch (videoFileName.substring(index).toLowerCase()) {
-                case ".mpd":
-                    return Video.VideoType.DASH;
-                case ".mp4":
-                    return Video.VideoType.MP4;
-                case ".m3u8":
-                    return Video.VideoType.HLS;
-                default:
-                    return Video.VideoType.OTHER;
-            }
-        } else {
-            if (mSrc.contains("mpd"))
-                return Video.VideoType.DASH;
-            if (mSrc.contains("mp4"))
-                return Video.VideoType.MP4;
-            if (mSrc.contains("m3u8"))
-                return Video.VideoType.HLS;
+        if(!TextUtils.isEmpty(mSrc)) {
+            String videoFileName = Uri.parse(mSrc).getLastPathSegment();
+            if(videoFileName != null){
+                int index = videoFileName.lastIndexOf('.');
+                if (index > -1) {
+                    switch (videoFileName.substring(index).toLowerCase()) {
+                        case ".mpd":
+                            return Video.VideoType.DASH;
+                        case ".mp4":
+                            return Video.VideoType.MP4;
+                        case ".m3u8":
+                            return Video.VideoType.HLS;
+                        default:
+                            return Video.VideoType.OTHER;
+                    }
+                } else {
+                    if (mSrc.contains("mpd"))
+                        return Video.VideoType.DASH;
+                    if (mSrc.contains("mp4"))
+                        return Video.VideoType.MP4;
+                    if (mSrc.contains("m3u8"))
+                        return Video.VideoType.HLS;
 
+                }
+            }
         }
 
         return Video.VideoType.OTHER;
