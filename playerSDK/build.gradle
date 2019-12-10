@@ -31,12 +31,12 @@ dependencies {
     api project(path: ':googlemediaframework')
 
 
-    final PLAY_SERVICES_VERSION = '16.1.2'
-    final SUPPORT_LIBRARY_VERSION = '1.0.0-beta01'
+    final PLAY_SERVICES_VERSION = '17.1.0'
+    final SUPPORT_LIBRARY_VERSION = '1.1.0'
     api "com.google.android.gms:play-services-cast:$PLAY_SERVICES_VERSION"
     api "androidx.appcompat:appcompat:$SUPPORT_LIBRARY_VERSION"
     api "androidx.mediarouter:mediarouter:$SUPPORT_LIBRARY_VERSION"
-    api 'com.google.ads.interactivemedia.v3:interactivemedia:3.10.9'
+    api 'com.google.ads.interactivemedia.v3:interactivemedia:3.16.1'
 }
 
 //com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
