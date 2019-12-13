@@ -36,7 +36,7 @@ dependencies {
     api "com.google.android.gms:play-services-cast:$PLAY_SERVICES_VERSION"
     api "androidx.appcompat:appcompat:$SUPPORT_LIBRARY_VERSION"
     api "androidx.mediarouter:mediarouter:$SUPPORT_LIBRARY_VERSION"
-    api 'com.google.ads.interactivemedia.v3:interactivemedia:3.16.1'
+    api 'com.google.ads.interactivemedia.v3:interactivemedia:3.11.3'
 }
 
 //com.google.gms.googleservices.GoogleServicesPlugin.config.disableVersionCheck = true
