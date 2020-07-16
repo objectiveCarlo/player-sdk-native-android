@@ -11,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.google.ads.interactivemedia.v3.api.AdPodInfo;
+import com.google.ads.interactivemedia.v3.api.player.AdMediaInfo;
 import com.google.ads.interactivemedia.v3.api.player.VideoAdPlayer;
 import com.google.ads.interactivemedia.v3.api.player.VideoProgressUpdate;
 import com.google.android.exoplayer.ExoPlayer;
@@ -46,43 +48,48 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
             new ArrayList<VideoAdPlayerCallback>(1);
     private static final long PLAYHEAD_UPDATE_INTERVAL = 200;
 
+    private boolean mIsAdDisplayed;
+    private AdMediaInfo mAdMediaInfo;
+
     @NonNull
     private Handler mPlaybackTimeReporter = new Handler(Looper.getMainLooper());
 
+    public void stopAd() {
+        if(mAdMediaInfo != null) {
+            stopAd(mAdMediaInfo);
+        }
+    }
 
     // [START VideoAdPlayer region]
     @Override
-    public void playAd() {
+    public void playAd(AdMediaInfo adMediaInfo) {
         if (mAdPlayer != null) {
+            if (!mIsAdDisplayed) {
+                mIsAdDisplayed = true;
+                startPlaybackTimeReporter();
+            }
             mAdPlayer.play();
-            startPlaybackTimeReporter();
         }
     }
 
     @Override
-    public void loadAd(String s) {
-        setAdPlayerSource(s);
+    public void loadAd(AdMediaInfo adMediaInfo, AdPodInfo adPodInfo) {
+        mAdMediaInfo = adMediaInfo;
+        setAdPlayerSource(adMediaInfo.getUrl());
     }
 
     @Override
-    public void stopAd() {
+    public void stopAd(AdMediaInfo adMediaInfo) {
         if (mAdPlayer != null) {
             mAdPlayer.pause();
         }
     }
 
     @Override
-    public void pauseAd() {
+    public void pauseAd(AdMediaInfo adMediaInfo) {
         if (mAdPlayer != null) {
             stopPlaybackTimeReporter();
             mAdPlayer.pause();
-        }
-    }
-
-    @Override
-    public void resumeAd() {
-        if (mAdPlayer != null) {
-            mAdPlayer.play();
         }
     }
 
@@ -106,13 +113,17 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
 
     public void pauseAdCallback(){
         for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-            callback.onPause();
+            if(mAdMediaInfo!=null){
+                callback.onPause(mAdMediaInfo);
+            }
         }
     }
 
     public void resumeAdCallback(){
         for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-            callback.onResume();
+            if(mAdMediaInfo!=null){
+                callback.onResume(mAdMediaInfo);
+            }
         }
     }
 
@@ -146,7 +157,6 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     public void onStateChanged(boolean playWhenReady, int playbackState) {
         switch (playbackState) {
             case ExoPlayer.STATE_READY:
-
                 if (playWhenReady) {
                     if (mReadiness != KState.READY) {
                         mReadiness = KState.READY;
@@ -155,7 +165,9 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                         mListener.adDurationUpdate((float) mAdPlayer.getDuration() / 1000);
                     }
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-                        callback.onPlay();
+                        if(mAdMediaInfo != null) {
+                            callback.onPlay(mAdMediaInfo);
+                        }
                     }
                 } else if (currentPosition > 0) {
                     mAdPlayer.seek(currentPosition, true);
@@ -166,16 +178,21 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
                     mAdPlayer.play();
                 } else {
                     for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-                        callback.onPause();
+                        if(mAdMediaInfo != null) {
+                            callback.onPause(mAdMediaInfo);
+                        }
                     }
                 }
                 break;
             case ExoPlayer.STATE_ENDED:
                 removeAd();
                 for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-                    callback.onEnded();
+                    if(mAdMediaInfo != null) {
+                        callback.onEnded(mAdMediaInfo);
+                    }
                 }
                 mReadiness = KState.IDLE;
+                mIsAdDisplayed = false;
                 break;
         }
     }
@@ -211,8 +228,11 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
     @Override
     public void onError(Exception e) {
         for (VideoAdPlayer.VideoAdPlayerCallback callback : mAdCallbacks) {
-            callback.onError();
+            if(mAdMediaInfo != null) {
+                callback.onError(mAdMediaInfo);
+            }
         }
+        mIsAdDisplayed = false;
     }
 
     @Override
@@ -238,6 +258,7 @@ public class KIMAAdPlayer implements VideoAdPlayer, ExoplayerWrapper.PlaybackLis
         mAdUIContainer = adUIContainer;
         mAdMimeType = adMimeType;
         mAdPreferredBitrate = adPreferredBitrate;
+        mIsAdDisplayed = false;
     }
 
     public void resume() {

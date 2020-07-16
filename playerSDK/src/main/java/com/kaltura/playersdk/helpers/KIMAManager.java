@@ -14,6 +14,8 @@ import com.google.ads.interactivemedia.v3.api.AdsManager;
 import com.google.ads.interactivemedia.v3.api.AdsManagerLoadedEvent;
 import com.google.ads.interactivemedia.v3.api.AdsRenderingSettings;
 import com.google.ads.interactivemedia.v3.api.AdsRequest;
+import com.google.ads.interactivemedia.v3.api.FriendlyObstruction;
+import com.google.ads.interactivemedia.v3.api.FriendlyObstructionPurpose;
 import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 import com.google.ads.interactivemedia.v3.api.ImaSdkSettings;
 import com.google.ads.interactivemedia.v3.api.player.ContentProgressProvider;
@@ -86,21 +88,20 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
         mSdkFactory = ImaSdkFactory.getInstance();
         ImaSdkSettings sdkSettings = mSdkFactory.createImaSdkSettings();
 
-        //Register friendly overlays
-        mAdDisplayContainer = mSdkFactory.createAdDisplayContainer();
-
-        if(adOverlays != null){
-            for(View v : adOverlays){
-                mAdDisplayContainer.registerVideoControlsOverlay(v);
-            }
-        }
-
-        mAdDisplayContainer.setPlayer(mIMAPlayer);
-        mAdDisplayContainer.setAdContainer(mIMAPlayer.getAdUIContainer());
+        mAdDisplayContainer = mSdkFactory.createAdDisplayContainer(mIMAPlayer.getAdUIContainer(), mIMAPlayer);
 
         mAdsLoader = mSdkFactory.createAdsLoader(context, sdkSettings, mAdDisplayContainer);
         mAdsLoader.addAdErrorListener(this);
         mAdsLoader.addAdsLoadedListener(this);
+
+        if(adOverlays != null){
+            for(View v : adOverlays){
+                FriendlyObstruction obstruction = mSdkFactory.createFriendlyObstruction(v,
+                        FriendlyObstructionPurpose.VIDEO_CONTROLS,
+                        "Hidden for MotoAds");
+                mAdDisplayContainer.registerFriendlyObstruction(obstruction);
+            }
+        }
     }
 
     /**
@@ -115,8 +116,6 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     public void setListener(KIMAManagerListener listener) {
         mListener = listener;
     }
-
-
 
     public void pause() {
         if (mAdsManager != null) {
@@ -194,6 +193,10 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
     @Override
     public void onAdEvent(AdEvent adEvent) {
         LOGD(TAG, "Start onAdEvent " + adEvent.getType().name());
+
+        if(adEvent.getType() == AdEvent.AdEventType.LOG){
+            LOGD(TAG, "LOG Event: " + adEvent.toString());
+        }
 
         if (adEvent.getType() == AdEvent.AdEventType.SKIPPED
                 || adEvent.getType() == AdEvent.AdEventType.CONTENT_RESUME_REQUESTED) {
@@ -295,7 +298,7 @@ public class KIMAManager implements AdErrorEvent.AdErrorListener,
 
     public void destroy() {
         if (mIMAPlayer != null) {
-            mAdDisplayContainer.unregisterAllVideoControlsOverlays();
+            mAdDisplayContainer.unregisterAllFriendlyObstructions();
             mIMAPlayer.release();
             mIMAPlayer = null;
             if (mAdsManager != null) {
